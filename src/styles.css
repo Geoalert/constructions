@@ -36,6 +36,7 @@ h1 {
 
 .noUi-horizontal .noUi-handle {
   background: gray;
+  box-shadow: none;
 }
 
 .noUi-marker-horizontal.noUi-marker-large {
@@ -84,6 +85,11 @@ h1 {
   .map-overlay .map-overlay-inner {
     border: none;
     border-top: 1px solid gray;
+    border-radius: 0px;
+    padding: 0px;
+  }
+  .slider {
+    padding: 10px 30px 40px;
   }
 }
 
