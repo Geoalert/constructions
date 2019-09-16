@@ -31,16 +31,17 @@ var map = new mapboxgl.Map({
   style: {
     version: 8,
     sources: {
-      google: {
+      osm: {
         type: "raster",
-        tiles: ["https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"],
+        tiles: ["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         tileSize: 256
       }
     },
     layers: [
       {
-        id: "google",
-        source: "google",
+        id: "osm",
+        source: "osm",
         type: "raster"
       }
     ]
@@ -133,6 +134,7 @@ function addRaster(year) {
     type: "raster",
     tiles: [tiles],
     tileSize: 256,
+    attribution: '&copy; MAXAR',
     bounds: bounds
   });
   map.addLayer({
