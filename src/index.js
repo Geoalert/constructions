@@ -33,8 +33,14 @@ var map = new mapboxgl.Map({
     sources: {
       osm: {
         type: "raster",
-        tiles: ["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        tiles: [
+          "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"
+          // "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          // "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          // "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        ],
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         tileSize: 256
       }
     },
@@ -134,7 +140,7 @@ function addRaster(year) {
     type: "raster",
     tiles: [tiles],
     tileSize: 256,
-    attribution: '&copy; MAXAR',
+    attribution: "&copy; MAXAR",
     bounds: bounds
   });
   map.addLayer({
