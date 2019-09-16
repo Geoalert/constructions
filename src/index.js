@@ -5,6 +5,9 @@ import "./styles.css";
 import bounds from "./bounds";
 import geojson from "./data.geojson";
 
+const INITIAL_YEAR = "2010";
+const DEBUG = process.env.NODE_ENV !== "production";
+
 var snapSlider = document.getElementById("slider-snap");
 noUiSlider.create(snapSlider, {
   range: {
@@ -16,7 +19,7 @@ noUiSlider.create(snapSlider, {
     "85%": 2018,
     max: 2019
   },
-  start: ["2010"],
+  start: [INITIAL_YEAR],
   snap: true,
   connect: true,
   pips: {
@@ -56,7 +59,7 @@ var map = new mapboxgl.Map({
   zoom: 12
 });
 
-var years = ["2010", "2014", "2015", "2016", "2017", "2018", "2019"];
+var YEARS = ["2010", "2014", "2015", "2016", "2017", "2018", "2019"].reverse();
 
 var LEGENDS = {
   DIFF: {
@@ -100,18 +103,26 @@ function readControls() {
   return { year, showDiff };
 }
 
-function hideRaster(year) {
-  map.setPaintProperty(year, "raster-opacity", 0);
-  // map.setLayoutProperty(year, "visibility", "none");
+function loadRaster(year) {
+  if (DEBUG) console.log("load", year);
+  map.setLayoutProperty(year, "visibility", "visible");
+}
+function unLoadRaster(year) {
+  if (DEBUG) console.log("unload", year);
+  map.setLayoutProperty(year, "visibility", "none");
 }
 
+function hideRaster(year) {
+  if (DEBUG) console.log("hide", year);
+  map.setPaintProperty(year, "raster-opacity", 0);
+}
 function showRaster(year) {
+  if (DEBUG) console.log("show", year);
   map.setPaintProperty(year, "raster-opacity", 1);
-  // map.setLayoutProperty(year, "visibility", "visible");
 }
 
 function hideAllRasters(exclude) {
-  years.filter(year => year !== exclude).map(hideRaster);
+  YEARS.filter(year => year !== exclude).map(hideRaster);
 }
 
 function filterBy() {
@@ -149,10 +160,10 @@ function addRaster(year) {
     source: sourceId,
     paint: {
       "raster-opacity": 0
+    },
+    layout: {
+      visibility: "none"
     }
-    // layout: {
-    //   visibility: "none"
-    // }
   });
 }
 
@@ -173,10 +184,39 @@ function buildLegend(legend) {
   });
 }
 
+function doWithNeighbourg(fn) {
+  return function(n, padding) {
+    var index = YEARS.indexOf(n) + padding;
+    if (YEARS[index] !== undefined) {
+      var year = YEARS[index];
+      fn(year);
+    }
+  };
+}
+
+var hideNeighbourg = doWithNeighbourg(hideRaster);
+var loadNeighbourg = doWithNeighbourg(loadRaster);
+var unloadNeighbourg = doWithNeighbourg(unLoadRaster);
+
+function updateRasterLayers() {
+  var controls = readControls();
+  var year = controls.year;
+  showRaster(year);
+  delay(100).then(() => {
+    hideNeighbourg(year, -1);
+    hideNeighbourg(year, 1);
+    loadNeighbourg(year, 1);
+    loadNeighbourg(year, -1);
+    unloadNeighbourg(year, -2);
+    unloadNeighbourg(year, 2);
+  });
+  filterBy();
+}
+
 map.on("load", function() {
   map.fitBounds(bounds);
 
-  years.reverse().map(addRaster);
+  YEARS.map(addRaster);
 
   map.addSource("constructions", {
     type: "geojson",
@@ -194,15 +234,26 @@ map.on("load", function() {
   });
 
   filterBy();
+  loadRaster(INITIAL_YEAR);
 
   document.getElementById("set-done").addEventListener("change", filterBy);
   document.getElementById("unset-done").addEventListener("change", filterBy);
-  snapSlider.noUiSlider.on("update", function() {
-    var controls = readControls();
-    showRaster(controls.year);
-    setTimeout(() => {
-      hideAllRasters(controls.year);
-    }, 100);
-    filterBy();
-  });
+  snapSlider.noUiSlider.on("update", debounce(updateRasterLayers, 100));
 });
+
+function delay(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function debounce(f, t) {
+  return function(args) {
+    let previousCall = this.lastCall;
+    this.lastCall = Date.now();
+    if (previousCall && this.lastCall - previousCall <= t) {
+      clearTimeout(this.lastCallTimer);
+    }
+    this.lastCallTimer = setTimeout(() => f(args), t);
+  };
+}
