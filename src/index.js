@@ -184,31 +184,42 @@ function buildLegend(legend) {
   });
 }
 
-function doWithNeighbourg(fn) {
+function doWithNeighbourg(fn, condition = () => true) {
   return function(n, padding) {
     var index = YEARS.indexOf(n) + padding;
     if (YEARS[index] !== undefined) {
       var year = YEARS[index];
-      fn(year);
+      if (condition(year)) fn(year);
     }
   };
 }
 
-var hideNeighbourg = doWithNeighbourg(hideRaster);
-var loadNeighbourg = doWithNeighbourg(loadRaster);
-var unloadNeighbourg = doWithNeighbourg(unLoadRaster);
+var loadedYears = new Set();
+
+var _loadRaster = year => {
+  loadedYears.add(year);
+  loadRaster(year);
+};
+
+var loadNeighbourg = doWithNeighbourg(_loadRaster);
+var unloadNeighbourg = doWithNeighbourg(
+  unLoadRaster,
+  year => !loadedYears.has(year)
+);
 
 function updateRasterLayers() {
   var controls = readControls();
   var year = controls.year;
+  if (DEBUG) console.log("------->", year);
+  _loadRaster(year);
   showRaster(year);
-  delay(100).then(() => {
-    hideNeighbourg(year, -1);
-    hideNeighbourg(year, 1);
+  delay(200).then(() => {
+    hideAllRasters(year);
     loadNeighbourg(year, 1);
     loadNeighbourg(year, -1);
     unloadNeighbourg(year, -2);
     unloadNeighbourg(year, 2);
+    if (DEBUG) console.log("-------<", year);
   });
   filterBy();
 }
@@ -234,11 +245,10 @@ map.on("load", function() {
   });
 
   filterBy();
-  loadRaster(INITIAL_YEAR);
 
   document.getElementById("set-done").addEventListener("change", filterBy);
   document.getElementById("unset-done").addEventListener("change", filterBy);
-  snapSlider.noUiSlider.on("update", debounce(updateRasterLayers, 100));
+  snapSlider.noUiSlider.on("update", debounce(updateRasterLayers, 210));
 });
 
 function delay(ms) {
