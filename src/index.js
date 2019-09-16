@@ -1,7 +1,7 @@
 /* global mapboxgl */
 /* global d3 */
 /* global noUiSlider */
-import "./styles.css";
+import "./styles.scss";
 import bounds from "./bounds";
 import geojson from "./data.geojson";
 
@@ -31,6 +31,7 @@ noUiSlider.create(snapSlider, {
 
 var map = new mapboxgl.Map({
   container: "map",
+  attributionControl: false,
   style: {
     version: 8,
     sources: {
@@ -58,6 +59,8 @@ var map = new mapboxgl.Map({
   center: [61.2756148940565, 55.142590470969964],
   zoom: 12
 });
+
+map.addControl(new mapboxgl.AttributionControl(), "top-right");
 
 var YEARS = ["2010", "2014", "2015", "2016", "2017", "2018", "2019"].reverse();
 
