@@ -60,7 +60,7 @@ var map = new mapboxgl.Map({
   zoom: 12
 });
 
-map.addControl(new mapboxgl.AttributionControl(), "top-right");
+map.addControl(new mapboxgl.AttributionControl(), "bottom-right");
 
 var YEARS = ["2010", "2014", "2015", "2016", "2017", "2018", "2019"].reverse();
 
