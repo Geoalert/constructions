@@ -31,7 +31,8 @@ function createSliderRange(years) {
 export function createSlider(nodeId, years) {
   const [sliderRange, firstYear] = createSliderRange(years);
   console.log(sliderRange);
-  const sliderNode = document.getElementById(nodeId);
+  const sliderNode = d3.select(nodeId).node();
+  // const sliderNode = document.getElementById(nodeId);
   return noUiSlider.create(sliderNode, {
     range: sliderRange,
     start: ["" + firstYear],

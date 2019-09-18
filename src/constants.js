@@ -18,6 +18,7 @@ export const LEGENDS = {
   PLAIN: [{ name: "Стройплощадки", color: "#A82A2A" }]
 };
 
+export const DEBUG = process.env.NODE_ENV !== "production";
 export const FILL_COLOR = {
   PLAIN: [
     "match",

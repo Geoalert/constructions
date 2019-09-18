@@ -1,6 +1,7 @@
-export function createCitiesSelect(cities) {
+export function createCitiesSelect(nodeId, cities) {
+  console.log("create select");
   const select = d3
-    .select("#city-select")
+    .select(nodeId)
     .append("select")
     .attr("class", "cities-select")
     .attr("name", "cities");
