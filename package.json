@@ -4,14 +4,15 @@
   "description": "Chelyabinsk constructions history",
   "main": "index.html",
   "scripts": {
-    "start": "parcel index.html --open",
+    "start": "parcel index.html",
     "build": "parcel build index.html --out-dir docs --public-url ./"
   },
-  "dependencies": {
-    "@turf/bbox": "6.0.1"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@turf/bbox": "6.0.1",
+    "redux": "^4.0.4",
     "@babel/core": "7.2.0",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
     "parcel-bundler": "^1.6.1",
     "sass": "^1.22.12"
   }
