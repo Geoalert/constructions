@@ -20,6 +20,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.0.2/nouislider.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
   </head>
 
   <body>
@@ -27,7 +29,8 @@
     <div class="map-legend">
       <div class="map-legend-inner">
         <fieldset>
-          <h1>Хронология строек Челябинской области</h1>
+          <h1>Хронология строек</h1>
+          <div id="city-select"></div>
           <hr />
         </fieldset>
         <div class="legend">
