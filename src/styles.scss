@@ -41,6 +41,16 @@ h1 {
   justify-content: space-between;
 }
 
+#city-select > select {
+    background: #fff;
+    border-radius: 3px;
+    width: 120px;
+    height: 30px;
+    margin: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    font-family: "Open Sans", sans-serif;
+}
+
 .noUi-pips-horizontal {
   height: 40px;
 }
@@ -124,16 +134,24 @@ h1 {
 }
 
 .map-legend {
+  bottom: 100px;
+  left: 0
+}
+
+.map-desc {
+  top: 0;
+  left: 0
+}
+
+.map-legend, .map-desc {
   font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
   position: absolute;
   width: 440px;
-  top: 0;
-  left: 0;
   margin: 20px;
   border: 2px solid gray;
   border-radius: 3px;
 
-  .map-legend-inner {
+  .map-legend-inner, .map-desc-inner {
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     padding: 10px;
