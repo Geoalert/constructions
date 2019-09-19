@@ -28,6 +28,16 @@ h1 {
   font-size: 14px;
 }
 
+
+.logo {
+  position: absolute;
+  right: 9px;
+  top: 9px;
+  z-index: 11;
+  background: white;
+  padding: 5px;
+}
+
 .slider {
   min-height: 50px;
   padding: 15px 40px 40px;
@@ -42,6 +52,9 @@ h1 {
 }
 
 #city-select > select {
+    max-width: 35%;
+    position: absolute;
+    top: 20px;
     background: #fff;
     border-radius: 3px;
     width: 120px;
@@ -134,16 +147,16 @@ h1 {
 }
 
 .map-legend {
-  bottom: 100px;
-  left: 0
-}
-
-.map-desc {
   top: 0;
   left: 0
 }
 
-.map-legend, .map-desc {
+.map-desc {
+    width: 50%;
+    margin: -10px 40%;
+}
+
+.map-legend {
   font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
   position: absolute;
   width: 440px;
