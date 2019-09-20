@@ -16,7 +16,7 @@ export default () =>
             // "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
           ],
           attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | &copy; <a href="https://geoalert.io" target="_blank" rel="noopener noreferrer">Geoalert</a>',
           tileSize: 256
         }
       },

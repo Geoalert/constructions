@@ -109,3 +109,20 @@ function buildLegend(withDiff) {
     swatches.appendChild(swatchContainer);
   });
 }
+
+const info = document.getElementById("info-icon");
+const desc = document.getElementById("map-desc");
+function toggleDesc() {
+  if (desc.style.display === "none") desc.style.display = "block";
+  else if (desc.style.display === "block") desc.style.display = "none";
+  else if (desc.style.display === "") desc.style.display = "block";
+}
+info.addEventListener("touchstart", toggleDesc);
+const resizeObserver = new ResizeObserver(() => {
+  if (window.innerWidth > 700)
+    if (desc.style.display === "none") {
+      desc.style.display = "block";
+    }
+});
+
+resizeObserver.observe(document.body);
