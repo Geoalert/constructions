@@ -159,14 +159,16 @@ h1 {
 }
 
 .map-desc {
-  display: block;
+  margin-top: 4px;
+  transition: max-height 0.5s;
+  overflow: hidden;
+  max-height: auto;
   @media screen and (max-width: $width-breakpoint) {
-    display: none;
+    max-height: 0;
   }
   p {
     margin: 0;
     padding: 0;
-    margin-top: 1px;
   }
 }
 
@@ -186,7 +188,7 @@ h1 {
     fieldset {
       border: none;
       padding: 0;
-      margin: 0 0 2px;
+      // margin: 0 0 2px;
 
       .flex-header {
         display: flex;

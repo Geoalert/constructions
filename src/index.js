@@ -112,17 +112,21 @@ function buildLegend(withDiff) {
 
 const info = document.getElementById("info-icon");
 const desc = document.getElementById("map-desc");
-function toggleDesc() {
-  if (desc.style.display === "none") desc.style.display = "block";
-  else if (desc.style.display === "block") desc.style.display = "none";
-  else if (desc.style.display === "") desc.style.display = "block";
-}
-info.addEventListener("touchstart", toggleDesc);
-const resizeObserver = new ResizeObserver(() => {
-  if (window.innerWidth > 700)
-    if (desc.style.display === "none") {
-      desc.style.display = "block";
-    }
-});
+const descHeight = desc.scrollHeight;
+let descExpanded = desc.style.getPropertyValue("max-height") === descHeight;
+const expandDesc = () => {
+  desc.style.setProperty("max-height", descHeight + "px");
+  descExpanded = true;
+};
+const hideDesc = () => {
+  desc.style.setProperty("max-height", 0);
+  descExpanded = false;
+};
+const toggleDesc = () => (descExpanded ? hideDesc() : expandDesc());
+info.addEventListener("touchend", toggleDesc);
 
+const resizeObserver = new ResizeObserver(() => {
+  if (window.innerWidth > 700) expandDesc();
+  else hideDesc();
+});
 resizeObserver.observe(document.body);
