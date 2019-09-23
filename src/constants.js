@@ -1,14 +1,3 @@
-export const _LEGENDS = {
-  DIFF: {
-    colors: ["#A82A2A", "#FFB366", "#15B371"],
-    names: ["New", "In progress", "Completed"]
-  },
-  PLAIN: {
-    colors: ["#A82A2A"],
-    names: ["Constructions"]
-  }
-};
-
 export const LEGENDS = {
   DIFF: [
     { name: "New", color: "#A82A2A" },
