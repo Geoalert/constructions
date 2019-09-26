@@ -17,6 +17,7 @@ import * as rasterActions from "./rasterActions";
 import { debounce, formatSliderValue } from "./helpers";
 import { LEGENDS, DEBUG } from "./constants";
 import createLegend from "./legend";
+import lineChart from "./lineChart";
 
 const CITIES_URL =
   "https://minio.aeronetlab.space/public/constructions/cities.json";
@@ -28,18 +29,22 @@ const rasterManager = new NeighbourgLoader(map);
 const legend = createLegend("swatches");
 
 function main(cities) {
-  const load = city => loadCity(cities.find(c => c.name === city));
+  const load = (city, data) =>
+    loadCity(cities.find(c => c.name === city), data);
 
   let unLoadCurrentCity;
   const citiesSelect = createCitiesSelect("#city-select", cities);
   map.on("load", () => {
-    const initialCity = cities[0].name;
-    unLoadCurrentCity = load(initialCity);
-  });
-  citiesSelect.on("change", function() {
-    unLoadCurrentCity();
-    const city = this.value;
-    unLoadCurrentCity = load(city);
+    const [{ features: featuresPath }] = cities;
+    d3.json(featuresPath).then(({ features: geojson }) => {
+      const [{ name: initialCityName }] = cities;
+      unLoadCurrentCity = load(initialCityName, geojson);
+      citiesSelect.on("change", function() {
+        unLoadCurrentCity();
+        const city = this.value;
+        unLoadCurrentCity = load(city, geojson);
+      });
+    });
   });
 }
 
@@ -47,7 +52,7 @@ function getLegendData(diff) {
   return diff ? LEGENDS.DIFF : LEGENDS.PLAIN;
 }
 
-function loadCity(cityData) {
+function loadCity(cityData, geojson) {
   if (DEBUG) console.log("load", cityData.name);
   const { years, geometry, features, raster_template } = cityData; // extract parameters
 
@@ -63,9 +68,15 @@ function loadCity(cityData) {
   if (diffIsOn) showDiffRadio.checked = true;
   else hideDiffRadio.checked = true;
 
+  const updateChart = lineChart("#chart");
+
   // Update legend
   legend.update(getLegendData(diffIsOn));
   const bounds = bbox(geometry);
+
+  // Update chart
+  let clearChart;
+  clearChart = updateChart(state, geojson);
 
   // create slider
   const slider = createSlider("#slider-snap", years);
@@ -81,7 +92,7 @@ function loadCity(cityData) {
     featuresUrl: features
   });
 
-  updateFeatures(map, state);
+  // updateFeatures(map, state);
   rasterManager.setItems(years);
   const bindedActions = rasterManager.bindLoaders(rasterActions);
 
@@ -99,7 +110,11 @@ function loadCity(cityData) {
     const state = store.getState();
     updateFeatures(map, state);
   };
-  const showDiff = () => updateDiffState(true);
+  const showDiff = () => {
+    updateDiffState(true);
+    clearChart();
+    clearChart = updateChart(store.getState(), geojson);
+  };
   const hideDiff = () => updateDiffState(false);
   showDiffRadio.addEventListener("change", showDiff);
   hideDiffRadio.addEventListener("change", hideDiff);
