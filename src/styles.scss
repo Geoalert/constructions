@@ -290,8 +290,15 @@ h1 {
   }
 }
 
+.chart-container {
+  width: 98%;
+  margin: 0 auto;
+}
+
 #chart {
   height: 150px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid gray;
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
 }

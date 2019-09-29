@@ -29,20 +29,22 @@ const rasterManager = new NeighbourgLoader(map);
 const legend = createLegend("swatches");
 
 function main(cities) {
-  const load = (city, data) =>
-    loadCity(cities.find(c => c.name === city), data);
+  const getByName = city => cities.find(c => c.name === city);
 
   let unLoadCurrentCity;
   const citiesSelect = createCitiesSelect("#city-select", cities);
   map.on("load", () => {
-    const [{ features: featuresPath }] = cities;
-    d3.json(featuresPath).then(({ features: geojson }) => {
-      const [{ name: initialCityName }] = cities;
-      unLoadCurrentCity = load(initialCityName, geojson);
-      citiesSelect.on("change", function() {
+    const [{ features }] = cities; // get first city from array
+    d3.json(features).then(geojson => {
+      const [initialCity] = cities;
+      unLoadCurrentCity = loadCity(initialCity, geojson);
+    });
+    citiesSelect.on("change", function() {
+      const city = getByName(this.value);
+      console.log("city", city);
+      d3.json(city.features).then(geojson => {
         unLoadCurrentCity();
-        const city = this.value;
-        unLoadCurrentCity = load(city, geojson);
+        unLoadCurrentCity = loadCity(city, geojson);
       });
     });
   });
@@ -51,6 +53,8 @@ function main(cities) {
 function getLegendData(diff) {
   return diff ? LEGENDS.DIFF : LEGENDS.PLAIN;
 }
+
+let chart = lineChart("#chart");
 
 function loadCity(cityData, geojson) {
   if (DEBUG) console.log("load", cityData.name);
@@ -68,15 +72,13 @@ function loadCity(cityData, geojson) {
   if (diffIsOn) showDiffRadio.checked = true;
   else hideDiffRadio.checked = true;
 
-  const updateChart = lineChart("#chart");
-
   // Update legend
   legend.update(getLegendData(diffIsOn));
   const bounds = bbox(geometry);
 
   // Update chart
   let clearChart;
-  clearChart = updateChart(state, geojson);
+  clearChart = chart.update(state, geojson.features);
 
   // create slider
   const slider = createSlider("#slider-snap", years);
@@ -89,7 +91,7 @@ function loadCity(cityData, geojson) {
     bounds,
     rasterIds: years,
     rasterUrlTempalte: raster_template,
-    featuresUrl: features
+    featuresUrl: geojson
   });
 
   // updateFeatures(map, state);
@@ -113,9 +115,13 @@ function loadCity(cityData, geojson) {
   const showDiff = () => {
     updateDiffState(true);
     clearChart();
-    clearChart = updateChart(store.getState(), geojson);
+    clearChart = chart.update(store.getState(), geojson.features);
   };
-  const hideDiff = () => updateDiffState(false);
+  const hideDiff = () => {
+    updateDiffState(false);
+    clearChart();
+    clearChart = chart.update(store.getState(), geojson.features);
+  };
   showDiffRadio.addEventListener("change", showDiff);
   hideDiffRadio.addEventListener("change", hideDiff);
 
@@ -132,6 +138,7 @@ function loadCity(cityData, geojson) {
 
 d3.json(CITIES_URL).then(main);
 
+// Collapsible mobile description
 const info = document.getElementById("info-icon");
 const desc = document.getElementById("map-desc");
 const descHeight = desc.scrollHeight;

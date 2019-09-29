@@ -15,13 +15,13 @@ const getArea = compose(
 const sumByKeys = (obj, keys) =>
   keys.reduce((sum, key) => sum + (obj[key] || 0), 0);
 
-function getLineData(areas, types) {
-  const plotData = [];
+function getLineData(id, areas, types, color) {
+  const data = [];
   for (let date in areas) {
     const value = sumByKeys(areas[date], types);
-    plotData.push({ date: d3.timeParse("%Y")(date), value });
+    data.push({ date: d3.timeParse("%Y")(date), value });
   }
-  return plotData;
+  return { id, data, color };
 }
 
 function formatData(rawData) {
@@ -33,8 +33,19 @@ function formatData(rawData) {
     .object(rawData);
 }
 
+function getMargins(width) {
+  return width > 700 ? 46 : 36;
+}
+
 function createChart(nodeId, chartWidth, chartHeight, showX = false) {
-  let margin = { top: 10, right: 50, bottom: 10, left: 40 },
+  const sideMargin = getMargins(chartWidth);
+  console.log("margin", sideMargin);
+  let margin = {
+      left: sideMargin - 12,
+      right: sideMargin,
+      top: 10,
+      bottom: 10
+    },
     width = chartWidth - margin.left - margin.right,
     height = chartHeight - margin.top - margin.bottom;
 
@@ -64,12 +75,26 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
   svg.append("g").attr("class", "myYaxis");
 
   // Create a function that takes a dataset as input and update the plot:
-  return function(data, color = "steelblue") {
+  function getmin(data, by) {
+    return d3.min(data, d => d3.min(d, by));
+  }
+  function getmax(data, by) {
+    return d3.max(data, d => d3.max(d, by));
+  }
+
+  // [
+  //   { lineData: { date, value }, color }
+  // ]
+
+  return function updateLine(lines) {
     const t = d3.transition().duration(750);
-    x.domain([d3.min(data, d => d.date), d3.max(data, d => d.date)]);
+    const lineDatas = lines.map(d => d.data);
+    const dateTicks = lineDatas[0].map(d => d.date);
+
+    x.domain([getmin(lineDatas, d => d.date), getmax(lineDatas, d => d.date)]);
     if (showX) {
       // Create the X axis:
-      xAxis.tickValues(data.map(d => d.date));
+      xAxis.tickValues(dateTicks);
       svg
         .selectAll(".myXaxis")
         .transition(t)
@@ -77,7 +102,23 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
     }
 
     // create the Y axis
-    y.domain([d3.min(data, d => d.value), d3.max(data, d => d.value)]);
+    y.domain([
+      getmin(lineDatas, d => d.value),
+      getmax(lineDatas, d => d.value)
+    ]);
+
+    const flatLine = d3
+      .line()
+      .curve(d3.curveMonotoneX)
+      .x(d => x(d.date))
+      .y(() => height);
+
+    const graphLine = d3
+      .line()
+      .curve(d3.curveMonotoneX)
+      .x(d => x(d.date))
+      .y(d => y(d.value));
+
     svg
       .selectAll(".myYaxis")
       .transition(t)
@@ -88,99 +129,113 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
       .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
       .attr("font-size", "14px")
       .attr("font-weight", "500")
-      .attr("x", 35)
+      .attr("x", width)
       .attr("y", 10)
       .text("Area km²");
     // Create a update selection: bind to the new data
-    const line = svg.selectAll(".lineTest").data([data], d => d.date);
+    const removeCallbacks = lines.map((line, index) => {
+      const l = svg
+        .selectAll(`.${line.id}-line-${index}`)
+        .data([line.data], d => `${line.id}-${d.date}-line`)
+        .join(
+          enter =>
+            enter
+              .append("path")
+              .attr("class", `${line.id}-line-${index}`)
+              .attr("fill", "none")
+              .attr("stroke-width", 3.0)
+              .attr("stroke", line.color)
+              .attr("d", flatLine)
+              .call(enter => enter.transition(t).attr("d", graphLine)),
+          update =>
+            update.call(update => update.transition(t).attr("d", graphLine)),
+          exit => exit.call(exit => exit.transition(t).attr("d", flatLine))
+        );
 
-    // Updata the line
-    line
-      .enter()
-      .append("path")
-      .attr("class", "lineTest")
-      .attr(
-        "d",
-        d3
-          .line()
-          .curve(d3.curveMonotoneX)
-          .x(d => x(d.date))
-          .y(() => height)
-      )
-      .merge(line)
-      .transition(t)
-      .attr(
-        "d",
-        d3
-          .line()
-          .curve(d3.curveMonotoneX)
-          .x(d => x(d.date))
-          .y(d => y(d.value))
-      )
-      .attr("fill", "none")
-      .attr("stroke", color)
-      .attr("stroke-width", 3.0);
+      const initialCircle = enter =>
+        enter
+          .append("circle")
+          .attr("class", `${line.id}-circle-${index}`)
+          .attr("fill", line.color)
+          .attr("cy", () => height)
+          .attr("cx", d => x(d.date))
+          .attr("r", () => 0);
+      const updateCircle = enter =>
+        enter
+          .transition(t)
+          .attr("fill", line.color)
+          .attr("cx", d => x(d.date))
+          .attr("cy", d => y(d.value))
+          .attr("r", () => 5);
+      const c = svg
+        .selectAll(`.${line.id}-circle-${index}`)
+        .data(line.data, d => `${line.id}-${d.date}-point`)
+        .join(
+          enter => initialCircle(enter).call(updateCircle),
+          update => update.attr("fill", line.color).call(updateCircle),
+          exit => exit.call(initialCircle)
+        );
 
-    const circles = svg.selectAll("circle").data(data, d => d.date);
-    circles
-      .enter()
-      .append("circle")
-      .attr("fill", color)
-      .attr("cy", () => height)
-      .attr("cx", d => x(d.date))
-      .merge(circles)
-      .transition(t)
-      .attr("cx", d => x(d.date))
-      .attr("cy", d => y(d.value))
-      .attr("r", () => 5);
-    return () => {
-      console.log("clear chart");
-      line
-        .exit()
-        .transition(t)
-        .attr(
-          "d",
-          d3
-            .line()
-            .curve(d3.curveMonotoneX)
-            .x(d => x(d.date))
-            .y(() => height)
-        )
-        .remove();
-      circles
-        .exit()
-        .transition(t)
-        .attr("cy", () => height)
-        .remove();
-      // svg.transition(t).remove();
-    };
+      return () => {
+        l.transition(t)
+          .attr("d", flatLine)
+          .remove();
+        c.transition(t)
+          .attr("cx", d => x(d.date))
+          .attr("cy", () => height)
+          .attr("r", () => 0)
+          .remove();
+      };
+    });
+
+    return () => removeCallbacks.forEach(c => c());
   };
 }
+
+const colorsScale = d3
+  .scaleOrdinal()
+  .domain(["new", "in_progress", "done"])
+  .range(["#A82A2A", "#FFB366", "#15B371"]);
 
 export default function(nodeId) {
   const brect = d3
     .select(nodeId)
     .node()
     .getBoundingClientRect();
-  const plotLine = createChart(nodeId, brect.width, 150);
-  return function(state, data) {
-    if (state.showDiff) {
-      const groupped = formatData(data);
-      const lineData1 = getLineData(groupped, ["new"]);
-      const lineData2 = getLineData(groupped, ["in_progress"]);
-      const lineData3 = getLineData(groupped, ["done"]);
-      const clear1 = plotLine(lineData1);
-      const clear2 = plotLine(lineData2);
-      const clear3 = plotLine(lineData3);
-      return () => {
-        clear1();
-        clear2();
-        clear3();
-      };
-    } else {
-      const groupped = formatData(data);
-      const lineData = getLineData(groupped, ["new", "in_progress"]);
-      return plotLine(lineData);
+  console.log(brect);
+  const plotLines = createChart(nodeId, brect.width, 150);
+  return {
+    update: function(state, data) {
+      console.log("check diff", state);
+      if (state.showDiff) {
+        const groupped = formatData(data);
+        const line1 = getLineData("new", groupped, ["new"], colorsScale("new"));
+        const line2 = getLineData(
+          "in_progress",
+          groupped,
+          ["in_progress"],
+          colorsScale("in_progress")
+        );
+        const line3 = getLineData(
+          "done",
+          groupped,
+          ["done"],
+          colorsScale("done")
+        );
+        return plotLines([line1, line2, line3]);
+      } else {
+        const groupped = formatData(data);
+        const line1 = getLineData(
+          "constructions",
+          groupped,
+          ["new", "in_progress"],
+          colorsScale("new")
+        );
+        console.log(line1);
+        return plotLines([line1]);
+      }
     }
   };
 }
+
+//
