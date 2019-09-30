@@ -19,7 +19,7 @@ function getLineData(id, areas, types, color) {
   const data = [];
   for (let date in areas) {
     const value = sumByKeys(areas[date], types);
-    data.push({ date: d3.timeParse("%Y")(date), value });
+    data.push({ date, value });
   }
   return { id, data, color };
 }
@@ -59,7 +59,7 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   // Initialise a X axis:
-  const x = d3.scaleTime().range([10, width]);
+  const x = d3.scaleLinear().range([10, width]);
   const xAxis = d3.axisBottom().scale(x);
   svg
     .append("g")
@@ -87,11 +87,15 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
   // ]
 
   return function updateLine(lines) {
-    const t = d3.transition().duration(750);
+    const t = d3
+      .transition()
+      .delay(100)
+      .duration(750);
+    const tEx = d3.transition().duration(750);
     const lineDatas = lines.map(d => d.data);
     const dateTicks = lineDatas[0].map(d => d.date);
 
-    x.domain([getmin(lineDatas, d => d.date), getmax(lineDatas, d => d.date)]);
+    x.domain([0, dateTicks.length - 1]);
     if (showX) {
       // Create the X axis:
       xAxis.tickValues(dateTicks);
@@ -107,16 +111,17 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
       getmax(lineDatas, d => d.value)
     ]);
 
+    const getX = date => x(dateTicks.indexOf(date));
     const flatLine = d3
       .line()
       .curve(d3.curveMonotoneX)
-      .x(d => x(d.date))
+      .x(d => getX(d.date))
       .y(() => height);
 
     const graphLine = d3
       .line()
       .curve(d3.curveMonotoneX)
-      .x(d => x(d.date))
+      .x(d => getX(d.date))
       .y(d => y(d.value));
 
     svg
@@ -127,21 +132,22 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
     svg
       .append("text")
       .attr("text-anchor", "middle") // this makes it easy to centre the text as the transform is applied to the anchor
-      .attr("font-size", "14px")
-      .attr("font-weight", "500")
-      .attr("x", width)
-      .attr("y", 10)
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left - 2)
+      .attr("x", 0 - height / 2)
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
       .text("Area km²");
     // Create a update selection: bind to the new data
-    const removeCallbacks = lines.map((line, index) => {
+    const removeCallbacks = lines.map(line => {
       const l = svg
-        .selectAll(`.${line.id}-line-${index}`)
+        .selectAll(`.${line.id}-line`)
         .data([line.data], d => `${line.id}-${d.date}-line`)
         .join(
           enter =>
             enter
               .append("path")
-              .attr("class", `${line.id}-line-${index}`)
+              .attr("class", `${line.id}-line`)
               .attr("fill", "none")
               .attr("stroke-width", 3.0)
               .attr("stroke", line.color)
@@ -155,33 +161,39 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
       const initialCircle = enter =>
         enter
           .append("circle")
-          .attr("class", `${line.id}-circle-${index}`)
+          .attr("class", `${line.id}-circle`)
           .attr("fill", line.color)
           .attr("cy", () => height)
-          .attr("cx", d => x(d.date))
+          .attr("cx", d => getX(d.date))
           .attr("r", () => 0);
       const updateCircle = enter =>
         enter
           .transition(t)
           .attr("fill", line.color)
-          .attr("cx", d => x(d.date))
+          .attr("cx", d => getX(d.date))
           .attr("cy", d => y(d.value))
           .attr("r", () => 5);
       const c = svg
-        .selectAll(`.${line.id}-circle-${index}`)
-        .data(line.data, d => `${line.id}-${d.date}-point`)
+        .selectAll(`.${line.id}-circle`)
+        .data(line.data, (_, i) => `${line.id}-${i}-point`)
         .join(
           enter => initialCircle(enter).call(updateCircle),
           update => update.attr("fill", line.color).call(updateCircle),
-          exit => exit.call(initialCircle)
+          exit =>
+            exit.call(exit =>
+              exit
+                .attr("cy", () => height)
+                // .attr("cx", d => getX(d.date))
+                .attr("r", () => 0)
+            )
         );
 
       return () => {
-        l.transition(t)
+        l.transition(tEx)
           .attr("d", flatLine)
           .remove();
-        c.transition(t)
-          .attr("cx", d => x(d.date))
+        c.transition(tEx)
+          // .attr("cx", d => getX(d.date))
           .attr("cy", () => height)
           .attr("r", () => 0)
           .remove();
@@ -205,8 +217,7 @@ export default function(nodeId) {
   console.log(brect);
   const plotLines = createChart(nodeId, brect.width, 150);
   return {
-    update: function(state, data) {
-      console.log("check diff", state);
+    update: (state, data) => {
       if (state.showDiff) {
         const groupped = formatData(data);
         const line1 = getLineData("new", groupped, ["new"], colorsScale("new"));

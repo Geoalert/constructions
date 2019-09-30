@@ -58,7 +58,7 @@ let chart = lineChart("#chart");
 
 function loadCity(cityData, geojson) {
   if (DEBUG) console.log("load", cityData.name);
-  const { years, geometry, features, raster_template } = cityData; // extract parameters
+  const { years, geometry, raster_template } = cityData; // extract parameters
 
   // Set initial state
   // Initial year
@@ -112,26 +112,36 @@ function loadCity(cityData, geojson) {
     const state = store.getState();
     updateFeatures(map, state);
   };
-  const showDiff = () => {
-    updateDiffState(true);
+  // const showDiff = () => {
+  //   updateDiffState(true);
+  //   clearChart();
+  //   clearChart = chart.update(store.getState(), geojson.features);
+  // };
+  // const hideDiff = () => {
+  //   updateDiffState(false);
+  //   clearChart();
+  //   clearChart = chart.update(store.getState(), geojson.features);
+  // };
+  const toggleDiff = function() {
+    store.dispatch(actions.toggleDiff());
+    const state = store.getState();
+    console.log("S", state);
+
+    legend.update(getLegendData(state.showDiff));
+    updateFeatures(map, state);
     clearChart();
-    clearChart = chart.update(store.getState(), geojson.features);
+    clearChart = chart.update(state, geojson.features);
   };
-  const hideDiff = () => {
-    updateDiffState(false);
-    clearChart();
-    clearChart = chart.update(store.getState(), geojson.features);
-  };
-  showDiffRadio.addEventListener("change", showDiff);
-  hideDiffRadio.addEventListener("change", hideDiff);
+  showDiffRadio.addEventListener("change", toggleDiff);
+  hideDiffRadio.addEventListener("change", toggleDiff);
 
   return () => {
     slider.destroy();
     unloadMapData();
     rasterManager.clearLoaded();
     legend.remove();
-    showDiffRadio.removeEventListener("change", showDiff);
-    hideDiffRadio.removeEventListener("change", hideDiff);
+    showDiffRadio.removeEventListener("change", toggleDiff);
+    hideDiffRadio.removeEventListener("change", toggleDiff);
     if (DEBUG) console.log("unload", cityData.name);
   };
 }
