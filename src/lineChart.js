@@ -43,7 +43,7 @@ function createChart(nodeId, chartWidth, chartHeight, showX = false) {
   let margin = {
       left: sideMargin - 12,
       right: sideMargin,
-      top: 10,
+      top: 12,
       bottom: 10
     },
     width = chartWidth - margin.left - margin.right,
@@ -210,11 +210,8 @@ const colorsScale = d3
   .range(["#A82A2A", "#FFB366", "#15B371"]);
 
 export default function(nodeId) {
-  const brect = d3
-    .select(nodeId)
-    .node()
-    .getBoundingClientRect();
-  console.log(brect);
+  const chart = d3.select(nodeId);
+  const brect = chart.node().getBoundingClientRect();
   const plotLines = createChart(nodeId, brect.width, 150);
   return {
     update: (state, data) => {

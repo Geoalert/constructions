@@ -153,7 +153,7 @@ const info = document.getElementById("info-icon");
 const desc = document.getElementById("map-desc");
 const descHeight = desc.scrollHeight;
 let descExpanded = desc.style.getPropertyValue("max-height") === descHeight;
-const expandDesc = () => {
+const showDesc = () => {
   desc.style.setProperty("max-height", descHeight + "px");
   descExpanded = true;
 };
@@ -161,11 +161,33 @@ const hideDesc = () => {
   desc.style.setProperty("max-height", 0);
   descExpanded = false;
 };
-const toggleDesc = () => (descExpanded ? hideDesc() : expandDesc());
+const toggleDesc = () => (descExpanded ? hideDesc() : showDesc());
 info.addEventListener("touchend", toggleDesc);
 
+const chartContainer = d3.select("#chart").node();
+const chartHeight = 150;
+let chartExpanded =
+  chartContainer.style.getPropertyValue("max-height") === chartHeight;
+const showChart = () => {
+  chartContainer.style.setProperty("max-height", chartHeight + "px");
+  chartExpanded = true;
+};
+const hideChart = () => {
+  chartContainer.style.setProperty("max-height", "5px");
+  chartExpanded = false;
+};
+d3.select(".chart-container .toggle-chart").on("click", () => {
+  if (!chartExpanded) showChart();
+  else if (chartExpanded) hideChart();
+});
+
 const resizeObserver = new ResizeObserver(() => {
-  if (window.innerWidth > 700) expandDesc();
-  else hideDesc();
+  if (window.innerWidth > 700) {
+    if (!descExpanded) showDesc();
+    if (!chartExpanded) showChart();
+  } else {
+    if (descExpanded) hideDesc();
+    if (chartExpanded) hideChart();
+  }
 });
 resizeObserver.observe(document.body);
