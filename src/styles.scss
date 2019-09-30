@@ -139,6 +139,8 @@ h1 {
   }
 
   .map-overlay-inner {
+    position: relative;
+    z-index: 2;
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     border-radius: 3px;
@@ -287,5 +289,41 @@ h1 {
 
   label {
     margin: 0;
+  }
+}
+
+.chart-container {
+  z-index: 0;
+  width: 98%;
+  margin: 0 auto;
+  position: relative;
+
+  .toggle-chart {
+    position: absolute;
+    right: 32px;
+    top: -36px;
+    width: 50px;
+    height: 70px;
+    border: 1px solid gray;
+    // border-bottom: none;
+    background: whitesmoke;
+    border-radius: 5px;
+  }
+}
+
+#chart {
+  height: 150px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid gray;
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+
+  overflow: hidden;
+  transition: max-height 0.5s;
+
+  max-height: auto;
+  @media screen and (max-width: $width-breakpoint) {
+    max-height: 5px;
   }
 }

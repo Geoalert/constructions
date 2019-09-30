@@ -1,23 +1,24 @@
-function createSliderRange(years) {
-  const intYears = years.map(y => +y);
-  const firstYear = d3.min(intYears);
-  const lastYear = d3.max(intYears);
-  const yearsScale = d3
+function createSliderRange(values) {
+  const firstValue = d3.min(values, d => +d);
+  const lastValue = d3.max(values, d => +d);
+  const keysScale = d3
     .scaleLinear()
-    .domain([firstYear, lastYear])
+    .domain([0, values.length - 1])
     .range([0, 1]);
-  const formatYear = year => d3.format(".0%")(yearsScale(year));
-  intYears.shift();
-  intYears.pop();
-  const range = intYears.reduce(
-    (range, year) => {
-      const key = formatYear(year);
-      range[key] = year;
+  const formatSliderKey = key => d3.format(".0%")(key);
+  const sliderValues = values.slice();
+  sliderValues.shift();
+  sliderValues.pop();
+  const range = sliderValues.reduce(
+    (range, value) => {
+      const valueIndex = values.indexOf(value);
+      const key = formatSliderKey(keysScale(valueIndex));
+      range[key] = +value;
       return range;
     },
-    { min: firstYear, max: lastYear }
+    { min: firstValue, max: lastValue }
   );
-  return [range, firstYear];
+  return [range, firstValue];
 }
 
 // export function updateSlider(slider, years) {

@@ -9,17 +9,26 @@ export default domNodeId => {
       this.legendNode
         .selectAll("div")
         .data(legend, d => d.name)
-        .join(enter => {
-          const legendItem = enter.append("div");
-          legendItem
-            .append("div")
-            .classed("swatch-color", true)
-            .style("background-color", d => d.color);
-          legendItem.append("div").text(d => d.name);
-        });
+        .join(
+          enter => {
+            const legendItem = enter.append("div");
+            legendItem
+              .append("div")
+              .classed("swatch-color", true)
+              .style("background-color", d => d.color);
+            legendItem.append("div").text(d => d.name);
+          },
+          update => {
+            update
+              .append("div")
+              .classed("swatch-color", true)
+              .style("background-color", d => d.color);
+            update.append("div").text(d => d.name);
+          }
+        );
     },
     remove() {
-      this.legendNode.selectAll("div").remove();
+      // this.legendNode.selectAll("div").remove();
     }
   };
 };
