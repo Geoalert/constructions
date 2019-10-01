@@ -300,14 +300,15 @@ h1 {
 
   .toggle-chart {
     position: absolute;
-    right: 32px;
+    right: 36px;
     top: -36px;
     width: 50px;
-    height: 70px;
+    height: 74px;
     border: 1px solid gray;
     // border-bottom: none;
     background: whitesmoke;
     border-radius: 5px;
+    text-align: center;
   }
 }
 
