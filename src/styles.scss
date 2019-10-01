@@ -301,19 +301,19 @@ h1 {
   .toggle-chart {
     position: absolute;
     right: 36px;
-    top: -36px;
+    top: -34px;
     width: 50px;
     height: 74px;
     border: 1px solid gray;
     // border-bottom: none;
     background: whitesmoke;
     border-radius: 5px;
+    padding: 0 7px;
     text-align: center;
 
     div {
       width: 100%;
       margin: 0 auto;
-      text-align: center;
     }
   }
 }
