@@ -7,7 +7,7 @@ import "./styles.scss";
 import createMap, {
   loadMapData,
   updateFeatures,
-  updateRasterLayers
+  updateRasterLayers,
 } from "./mapboxMap";
 import { createSlider } from "./slider";
 import { createCitiesSelect } from "./citiesSelect";
@@ -20,7 +20,7 @@ import createLegend from "./legend";
 import lineChart from "./lineChart";
 
 const CITIES_URL =
-  "https://minio.aeronetlab.space/public/constructions/cities.json";
+  "https://minio-production.mapflow.ai/public/constructions/geojson/cities.json";
 
 const map = createMap();
 const hideDiffRadio = document.getElementById("unset-done");
@@ -29,20 +29,20 @@ const rasterManager = new NeighbourgLoader(map);
 const legend = createLegend("swatches");
 
 function main(cities) {
-  const getByName = city => cities.find(c => c.name === city);
+  const getByName = (city) => cities.find((c) => c.name === city);
 
   let unLoadCurrentCity;
   const citiesSelect = createCitiesSelect("#city-select", cities);
   map.on("load", () => {
     const [{ features }] = cities; // get first city from array
-    d3.json(features).then(geojson => {
+    d3.json(features).then((geojson) => {
       const [initialCity] = cities;
       unLoadCurrentCity = loadCity(initialCity, geojson);
     });
-    citiesSelect.on("change", function() {
+    citiesSelect.on("change", function () {
       const city = getByName(this.value);
       console.log("city", city);
-      d3.json(city.features).then(geojson => {
+      d3.json(city.features).then((geojson) => {
         unLoadCurrentCity();
         unLoadCurrentCity = loadCity(city, geojson);
       });
@@ -91,14 +91,14 @@ function loadCity(cityData, geojson) {
     bounds,
     rasterIds: years,
     rasterUrlTempalte: raster_template,
-    featuresUrl: geojson
+    featuresUrl: geojson,
   });
 
   // updateFeatures(map, state);
   rasterManager.setItems(years);
   const bindedActions = rasterManager.bindLoaders(rasterActions);
 
-  const updateLayers = year => {
+  const updateLayers = (year) => {
     store.dispatch(actions.setYear(year));
     const state = store.getState();
     updateFeatures(map, state);
@@ -106,7 +106,7 @@ function loadCity(cityData, geojson) {
   };
   slider.on("update", debounce(formatSliderValue(updateLayers), 110));
 
-  const updateDiffState = checked => {
+  const updateDiffState = (checked) => {
     legend.update(getLegendData(checked));
     store.dispatch(actions.setDiff(checked));
     const state = store.getState();
@@ -122,7 +122,7 @@ function loadCity(cityData, geojson) {
   //   clearChart();
   //   clearChart = chart.update(store.getState(), geojson.features);
   // };
-  const toggleDiff = function() {
+  const toggleDiff = function () {
     store.dispatch(actions.toggleDiff());
     const state = store.getState();
     console.log("S", state);
