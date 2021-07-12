@@ -11,7 +11,7 @@
     "build": "parcel build index.html --out-dir docs --public-url ./ --no-source-maps"
   },
   "dependencies": {
-    "@turf/area": "^6.0.1"
+    "@turf/area": "^6.5.0"
   },
   "devDependencies": {
     "@babel/core": "7.6.4",
